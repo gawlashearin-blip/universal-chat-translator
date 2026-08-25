@@ -1,0 +1,36 @@
+{
+	"schemaVersion": 1,
+	"id": "universal-chat-translator",
+	"version": "${version}",
+	"name": "Universal Chat Translator",
+	"description": "使用 Google 免费翻译或自定义 OpenAI 兼容接口翻译聊天消息。",
+	"authors": [
+		"Hearin",
+		"Universal Chat Translator contributors",
+		"Real_SShwer (original project)"
+	],
+	"license": "CC-BY-4.0",
+	"icon": "assets/universal-chat-translator/icon.png",
+	"contact": {
+		"homepage": "https://github.com/gawlashearin-blip/universal-chat-translator",
+		"sources": "https://github.com/gawlashearin-blip/universal-chat-translator",
+		"issues": "https://github.com/gawlashearin-blip/universal-chat-translator/issues"
+	},
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"cn.universalchattranslator.UniversalChatTranslatorClient"
+		],
+        "modmenu": [
+          "cn.universalchattranslator.config.ModMenuIntegration"
+        ]
+	},
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*",
+        "cloth-config": ">=21.11.153",
+        "modmenu": ">=17.0.0-beta.2"
+	}
+}
