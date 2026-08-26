@@ -4,22 +4,19 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 public final class CustomOpenAiTranslator {
-    private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static final int MAX_ERROR_LENGTH = 240;
 
     private CustomOpenAiTranslator() {
@@ -46,31 +43,32 @@ public final class CustomOpenAiTranslator {
         String endpoint = normalizeEndpoint(settings.baseUrl());
         String requestJson = createRequestJson(settings, text, sourceLanguage, targetLanguage);
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(settings.timeoutSeconds(), TimeUnit.SECONDS)
-                .readTimeout(settings.timeoutSeconds(), TimeUnit.SECONDS)
-                .writeTimeout(settings.timeoutSeconds(), TimeUnit.SECONDS)
-                .callTimeout(settings.timeoutSeconds(), TimeUnit.SECONDS)
-                .followRedirects(false)
-                .followSslRedirects(false)
+        Duration timeout = Duration.ofSeconds(settings.timeoutSeconds());
+        HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(timeout)
+                .followRedirects(HttpClient.Redirect.NEVER)
                 .build();
 
-        Request.Builder requestBuilder = new Request.Builder()
-                .url(endpoint)
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(URI.create(endpoint))
+                .timeout(timeout)
                 .header("Accept", "application/json")
-                .post(RequestBody.create(requestJson, JSON));
+                .header("Content-Type", "application/json; charset=utf-8")
+                .POST(HttpRequest.BodyPublishers.ofString(requestJson, StandardCharsets.UTF_8));
         if (settings.apiKey() != null && !settings.apiKey().isBlank()) {
             requestBuilder.header("Authorization", "Bearer " + settings.apiKey().trim());
         }
 
-        try (Response response = client.newCall(requestBuilder.build()).execute()) {
-            String responseBody = response.body() == null ? "" : response.body().string();
-            if (response.isRedirect()) {
+        try {
+            HttpResponse<String> response = client.send(
+                    requestBuilder.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            String responseBody = response.body() == null ? "" : response.body();
+            int statusCode = response.statusCode();
+            if (statusCode >= 300 && statusCode < 400) {
                 throw new TranslationException("The API returned a redirect; enter the final endpoint URL");
             }
-            if (!response.isSuccessful()) {
+            if (statusCode < 200 || statusCode >= 300) {
                 String detail = extractErrorMessage(responseBody, settings.apiKey());
-                throw new TranslationException("API returned HTTP " + response.code()
+                throw new TranslationException("API returned HTTP " + statusCode
                         + (detail.isEmpty() ? "" : ": " + detail));
             }
             return parseTranslation(responseBody);
@@ -78,6 +76,9 @@ public final class CustomOpenAiTranslator {
             throw e;
         } catch (IOException e) {
             throw new TranslationException("API network error: " + safeMessage(e.getMessage(), settings.apiKey()), e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new TranslationException("API request was interrupted", e);
         }
     }
 
@@ -105,11 +106,15 @@ public final class CustomOpenAiTranslator {
         if (!trimmed.toLowerCase(Locale.ROOT).endsWith("/chat/completions")) {
             trimmed += "/chat/completions";
         }
-        HttpUrl parsed = HttpUrl.parse(trimmed);
-        if (parsed == null) {
+        try {
+            URI endpoint = new URI(trimmed);
+            if (endpoint.getHost() == null) {
+                throw new TranslationException("Base URL is invalid");
+            }
+            return endpoint.toASCIIString();
+        } catch (URISyntaxException e) {
             throw new TranslationException("Base URL is invalid");
         }
-        return parsed.toString();
     }
 
     public static boolean isInsecureRemoteHttp(String baseUrl) {

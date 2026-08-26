@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.1
+
+- Replaced the production OkHttp/Okio networking stack with Java 21's built-in HTTP client.
+- Fixed `NoSuchMethodError` crashes caused by older OkHttp classes bundled by Lunar Client and other modified clients.
+- Preserved custom endpoint timeouts, redirect blocking, API key handling, protocol validation, and error redaction.
+- Reduced the number of third-party libraries embedded in the release JAR.
+
 ## 1.2.0
 
 - Added optional single-key shortcuts for player translation, system translation, Chinese-to-English sending, and opening the config screen.

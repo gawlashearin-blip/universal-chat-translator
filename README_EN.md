@@ -60,7 +60,7 @@ The first line is local-only. The second is displayed normally by the server.
 
 ## Download and installation
 
-1. Download `universal-chat-translator-1.2.0.jar` from [GitHub Releases](https://github.com/gawlashearin-blip/universal-chat-translator/releases/latest).
+1. Download `universal-chat-translator-1.2.1.jar` from [GitHub Releases](https://github.com/gawlashearin-blip/universal-chat-translator/releases/latest).
 2. Install Fabric Loader, Fabric API, Cloth Config, and Mod Menu for Minecraft 1.21.11.
 3. Place the JAR in the instance's `mods` directory.
 4. Remove older `universal-chat-translator-*.jar` and `.jar.disabled` files to prevent multiple versions from coexisting.

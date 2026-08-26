@@ -60,7 +60,7 @@ Universal Chat Translator 可以把收到的外语玩家消息或系统消息翻
 
 ## 下载与安装
 
-1. 从 [GitHub Releases](https://github.com/gawlashearin-blip/universal-chat-translator/releases/latest) 下载 `universal-chat-translator-1.2.0.jar`。
+1. 从 [GitHub Releases](https://github.com/gawlashearin-blip/universal-chat-translator/releases/latest) 下载 `universal-chat-translator-1.2.1.jar`。
 2. 安装与 Minecraft 1.21.11 匹配的 Fabric Loader、Fabric API、Cloth Config 和 Mod Menu。
 3. 把 JAR 放入当前游戏实例的 `mods` 文件夹。
 4. 删除所有更早的 `universal-chat-translator-*.jar` 和 `.jar.disabled` 文件，避免多个版本共存。
